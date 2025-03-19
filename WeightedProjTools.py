@@ -4,7 +4,7 @@ from sympy import symbols, Eq, solve, parse_expr
 from sympy.utilities.lambdify import lambdify
 
 
-"""Provides some tools and tunctions to perform calculations in the context of weighted projective space."""
+"""Provides some tools and functions to perform calculations in the context of weighted projective space."""
 
 
 ###############
