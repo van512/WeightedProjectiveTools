@@ -134,6 +134,7 @@ class Weights:
     Represents a list of weights and computes its reduced and well-formed equivalents
     """
     def __init__(self, weights: list):
+        weights.sort() # sort the weights 
         self.weights = weights
         # Compute the greatest common divisor (GCD) of all weights
         self.pgcd = np.gcd.reduce(weights)
@@ -160,12 +161,7 @@ class SheafIsomorphism:
         # Compute the dimension before reduction
         self.dim_before = dimrec(self.W.weights, self.degree)
 
-        # Initialize degrees and dimension after reduction
-        self.reduced_degree = 0
-        self.wellformed_degree = 0
-        self.dim_after = 0#self.dim_before
-
-        # Calculate the well-formed degree
+        # Calculate the well-formed degree if possible
         self.form_well_degree()
 
 
@@ -178,6 +174,9 @@ class SheafIsomorphism:
         
         # Check if the reduced degree is effectively an integer (handles floating-point precision)
         if abs(temp - int(temp)) < precision:
+            # 
+            self.isreducible = True
+
             # Set the reduced degree
             self.reduced_degree = int(temp)
             
@@ -189,6 +188,8 @@ class SheafIsomorphism:
             
             # Compute the dimension after reduction
             self.dim_after = dimrec(self.W.wellformed_weights, self.wellformed_degree)
+        else:
+            self.isreducible = False
 
 
     def dimensions_agree(self):

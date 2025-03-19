@@ -12,14 +12,22 @@ def calculate_dimension():
         w = Weights(a)
         Od = SheafIsomorphism(w,d)
 
-        result_string=str(f"The weight {w.weights} reduces to {w.reduced_weights} and it is equivalent to the wellformed weight {w.wellformed_weights}.\n"+
+        if Od.isreducible == True:
+
+            result_string=str(f"The weight {w.weights} reduces to {w.reduced_weights} and it is equivalent to the wellformed weight {w.wellformed_weights}.\n"+
                           f"Thus we have the following equalities :\n"+
                           f"P({w.weights})=P({w.reduced_weights})=P({w.wellformed_weights}).\n \n"+
                           f"The dimension of the associated linear system of degree {d} is dim C_{w.weights}[X]_{d}={Od.dim_before}.\n"+
-                          f"For suitable degree values, we have a sheaf isomorphism. \n"+ 
+                          f"The degree is reducible. \n"+ 
                           f"The reduced degree is {Od.reduced_degree} and the corresponding wellformed degree is {Od.wellformed_degree}.\n"+
                           f"We see that the dimensions of the linear systems agree: \n"+
                           f"dim C_{w.wellformed_weights}[X]_{Od.wellformed_degree} = {Od.dim_after}")
+        else:
+            result_string=str(f"The weight {w.weights} reduces to {w.reduced_weights} and it is equivalent to the wellformed weight {w.wellformed_weights}.\n"+
+                          f"Thus we have the following equalities :\n"+
+                          f"P({w.weights})=P({w.reduced_weights})=P({w.wellformed_weights}).\n \n"+
+                          f"The dimension of the associated linear system of degree {d} is dim C_{w.weights}[X]_{d}={Od.dim_before}.\n"+
+                          f"The degree is not reducible.")
         
         result_label.config(text=result_string, fg='black')
         
