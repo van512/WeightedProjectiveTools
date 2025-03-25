@@ -135,24 +135,24 @@ class Weights:
     """
     def __init__(self, weights: list):
         weights.sort() # sort the weights 
-        self.weights = weights
+        self.weights = np.array(weights)
         # Compute the greatest common divisor (GCD) of all weights
-        self.pgcd = np.gcd.reduce(weights)
+        self.pgcd = np.array(np.gcd.reduce(weights))
         # Compute the reduced weights by dividing each weight by the GCD
-        self.reduced_weights = (weights / self.pgcd).astype(int)
+        self.reduced_weights = np.array((weights / self.pgcd).astype(int))
         # Compute GCDs of the reduced weights with each element removed
-        self.S = reduce_arr(np.gcd, self.reduced_weights)
+        self.S = np.array(reduce_arr(np.gcd, self.reduced_weights))
         # Compute the least common multiples (LCM) of these GCDs
-        self.Q = reduce_arr(np.lcm, self.S)
+        self.Q = np.array(reduce_arr(np.lcm, self.S))
         # Calculate the well-formed weights
-        self.wellformed_weights = (np.array(self.reduced_weights) / self.Q).astype(int)
-        # Compute the LCM of the GCD sublist S
-        self.q = np.lcm.reduce(self.S)
+        self.wellformed_weights = np.array((self.reduced_weights / self.Q).astype(int))
+        # Compute the LCM of S
+        self.q = np.array(np.lcm.reduce(self.S))
 
 
-class SheafIsomorphism:
+class LinearSystem:
     """
-    Represents a sheaf isomorphism with dimension reduction using weights.
+    Represents a linear system and reduces it when possible, calculates its dimension.
     """
     def __init__(self, W: Weights, degree: int):
         self.W = W  # Associated weight class
