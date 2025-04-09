@@ -1,0 +1,10 @@
+name: wpsenv
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python
+  - numpy
+  - sympy
+  - streamlit
+  - scipy
