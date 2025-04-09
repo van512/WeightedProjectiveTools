@@ -1,11 +1,11 @@
-import numpy as np
-from sympy.solvers.diophantine import diophantine
-from sympy import symbols, solve, parse_expr
-from sympy.utilities.lambdify import lambdify
+import numpy as np # type: ignore
+from sympy.solvers.diophantine import diophantine # type: ignore
+from sympy import symbols, solve, parse_expr # type: ignore
+from sympy.utilities.lambdify import lambdify # type: ignore
 from functools import lru_cache
 from itertools import combinations
-from numpy.typing import NDArray
-from scipy.special import comb
+from numpy.typing import NDArray # type: ignore
+from scipy.special import comb # type: ignore
 #import time
 
 
