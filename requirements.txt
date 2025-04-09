@@ -2,8 +2,8 @@
 # $ conda create --name <env> --file <this file>
 # platform: linux-64
 # created-by: conda 24.11.0
-numpy==2.2.4
-python==3.13.2
-sympy==1.13.3
+numpy
+python
+sympy
 streamlit
-scipy==1.11.2
+scipy
