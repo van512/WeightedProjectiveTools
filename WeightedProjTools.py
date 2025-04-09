@@ -1,47 +1,37 @@
 import numpy as np
 from sympy.solvers.diophantine import diophantine
-from sympy import symbols, Eq, solve, parse_expr
+from sympy import symbols, solve, parse_expr
 from sympy.utilities.lambdify import lambdify
+from functools import lru_cache
+from itertools import combinations
+from numpy.typing import NDArray
+from scipy.special import comb
+#import time
 
 
 """Provides some tools and functions to perform calculations in the context of weighted projective space."""
 
 
-###############
-def dimrec(a: list, d: int, i=0, l=0):
+def dimrec(a: list, d: int) -> int:
     """
-    Recursive function to calculate dim C_a[X]_d, i.e. count combinations of numbers from list 'a' that sum up to 'd'.
-    
-    Parameters:
-    a (list): A list of integers : the weights a=(a_0,\dots,a_n).
-    d (int): Target sum to achieve : the degree of the weighted homogeneous polynomials.
-    i (int): Current index in the list (default is 0).
-    l (int): Current accumulated sum (default is 0).
-    
-    Returns:
-    int: Number of ways to combine elements from 'a' to sum up to 'd', equal to dim C_a[X]_d
+    Optimized recursive function with memoization to calculate dim C_a[X]_d.
     """
-    
-    # Initialize the current count of valid combinations
-    current_sum = 0
-    
-    # If we haven't reached the end of the list
-    if i < len(a):
-        # Loop over all possible values of the current element from 0 to d-l, stepping by a[i]
-        for ki in range(0, d - l + 1, a[i]):
-            # Recursively check combinations using the next element
-            current_sum += dimrec(a, d - l, i + 1, ki)
-    
-    # Base case: if we used all elements and the remaining sum is exactly 0
-    elif d - l == 0:
-        assert i == len(a)  # Ensure we've processed all elements
-        current_sum = 1  # This counts as one valid combination
-    
-    # Return the total number of valid combinations found
-    return current_sum
+
+    @lru_cache(maxsize=None)
+    def helper(i: int, remaining: int) -> int:
+        if i == len(a):
+            return 1 if remaining == 0 else 0
+        
+        total = 0
+        # Try all multiples of a[i] that do not exceed 'remaining'
+        for k in range(0, remaining + 1, a[i]):
+            total += helper(i + 1, remaining - k)
+        
+        return total
+
+    return helper(0, d)
 
 
-###############
 def uniquebi(a:int, s:int, d:int, verbose=False):
     """Solves the Diophantine equation d = b_i(d)a_i+c_i(d)s_i with the notation of the thesis
     Input Variables :
@@ -101,8 +91,7 @@ def uniquebi(a:int, s:int, d:int, verbose=False):
     return b_val
 
 
-##################
-def reduce_arr(func, arr: list):
+def reduce_arr(func, arr: list) -> list:
     """
     Applies a reduction function to the array with each element individually removed.
     
@@ -128,7 +117,6 @@ def reduce_arr(func, arr: list):
     return output
 
 
-#########
 class Weights:
     """
     Represents a list of weights and computes its reduced and well-formed equivalents
@@ -157,13 +145,16 @@ class LinearSystem:
     def __init__(self, W: Weights, degree: int):
         self.W = W  # Associated weight class
         self.degree = degree  # Original degree before weight reduction
-
-        # Compute the dimension before reduction
-        self.dim_before = dimrec(self.W.weights, self.degree)
+        
+        self.isreducible = None
+        self.reduced_degree = None
+        self.wellformed_degree = None
 
         # Calculate the well-formed degree if possible
         self.form_well_degree()
 
+        # Computes the dimension on the normalized weights and degree (normalized = reduced + well-formed)
+        self.dimension = dimrec(self.W.wellformed_weights, self.wellformed_degree)
 
     def form_well_degree(self):
         """
@@ -185,16 +176,56 @@ class LinearSystem:
             
             # Compute the well-formed degree using the formula: phi(d) in the thesis
             self.wellformed_degree = (self.reduced_degree - np.dot(self.B, self.W.reduced_weights)) / self.W.q
-            
-            # Compute the dimension after reduction
-            self.dim_after = dimrec(self.W.wellformed_weights, self.wellformed_degree)
+
         else:
             self.isreducible = False
 
 
-    def dimensions_agree(self):
-        """
-        Checks if the dimensions before and after reduction agree.
-        """
-        print(self.dim_before, self.dim_after)
-        return self.dim_before == self.dim_after
+
+
+####  to check very ampleness
+
+def very_ample_bound(weights:NDArray[np.int32]):
+    # G(Q) G(a) for us
+
+        # Function to calculate LCM of a list using numpy's np.lcm.reduce
+    @lru_cache(None)  # Memoize this function to avoid recomputing the same sublist
+    def memoized_lcm(weights_sublist):
+        return np.lcm.reduce(weights_sublist)
+
+    def sum_lcms(nu): #nu = length of weights_sublist
+        total_lcm_sum = 0
+        for weights_sublist in combinations(weights, nu):
+            # Sum the LCM of the elements of the sublist of weights
+            total_lcm_sum += memoized_lcm(weights_sublist)
+        return total_lcm_sum
+
+    n = len(weights)-1
+    if n==0:
+        return -weights[0]
+    elif n>0:
+        temp_sum = 0
+        for nu in range(2,n+1+1):
+            temp_sum += sum_lcms(nu)/comb(n-1,nu-2)
+        return -weights.sum() + temp_sum/n
+
+
+
+class WeightedProjectiveSpace:
+    
+    def __init__(self, W:Weights):
+        self.W = W # weights
+        self.embedding_dimension = self.embeds_into()
+
+    def embeds_into(self)->int:
+        m = np.array(np.lcm.reduce(self.W.wellformed_weights))
+        nGm = np.ceil(very_ample_bound(self.W.wellformed_weights)/m)
+        if nGm < 1:
+            deg_mn = m  #0 pb chekc >0
+        else:
+            deg_mn = nGm*m
+        linsys = LinearSystem(Weights(self.W.wellformed_weights), np.array(np.int64(deg_mn)))
+        self.embedding_linear_system = linsys
+        N = linsys.dimension-1
+        return N
+        # return the dimension of the projective space in which it embeds into
