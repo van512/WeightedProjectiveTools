@@ -10,23 +10,23 @@ def calculate_dimension():
         d = int(degree_entry.get())
 
         w = Weights(a)
-        Od = SheafIsomorphism(w,d)
+        Cad = LinearSystem(w,d) #C_a[X]_d
 
-        if Od.isreducible == True:
+        if Cad.isreducible == True:
 
             result_string=str(f"The weight {w.weights} reduces to {w.reduced_weights} and it is equivalent to the wellformed weight {w.wellformed_weights}.\n"+
                           f"Thus we have the following equalities :\n"+
                           f"P({w.weights})=P({w.reduced_weights})=P({w.wellformed_weights}).\n \n"+
-                          f"The dimension of the associated linear system of degree {d} is dim C_{w.weights}[X]_{d}={Od.dim_before}.\n"+
+                          f"The dimension of the associated linear system of degree {d} is dim C_{w.weights}[X]_{d}={Cad.dim_before}.\n"+
                           f"The degree is reducible. \n"+ 
-                          f"The reduced degree is {Od.reduced_degree} and the corresponding wellformed degree is {Od.wellformed_degree}.\n"+
+                          f"The reduced degree is {Cad.reduced_degree} and the corresponding wellformed degree is {Cad.wellformed_degree}.\n"+
                           f"We see that the dimensions of the linear systems agree: \n"+
-                          f"dim C_{w.wellformed_weights}[X]_{Od.wellformed_degree} = {Od.dim_after}")
+                          f"dim C_{w.wellformed_weights}[X]_{Cad.wellformed_degree} = {Cad.dim_after}")
         else:
             result_string=str(f"The weight {w.weights} reduces to {w.reduced_weights} and it is equivalent to the wellformed weight {w.wellformed_weights}.\n"+
                           f"Thus we have the following equalities :\n"+
                           f"P({w.weights})=P({w.reduced_weights})=P({w.wellformed_weights}).\n \n"+
-                          f"The dimension of the associated linear system of degree {d} is dim C_{w.weights}[X]_{d}={Od.dim_before}.\n"+
+                          f"The dimension of the associated linear system of degree {d} is dim C_{w.weights}[X]_{d}={Cad.dim_before}.\n"+
                           f"The degree is not reducible.")
         
         result_label.config(text=result_string, fg='black')
@@ -40,12 +40,15 @@ def calculate_dimension():
 
 # Create the main window
 root = tk.Tk()
-root.title("Weighted Homogeneous Polynomial Space Dimension Calculator")
-root.geometry("800x400")
+root.title("Weight Reduction and Linear System Dimension Calculator")
+root.geometry("700x400")
 root.configure(bg='white')
 
 # Create and place widgets
-description_label = tk.Label(root, text="This program calculates the dimension of the space of\na-weighted homogeneous polynomials of degree d in n+1 variables.", bg='white')
+description_label = tk.Label(root, text="This program does the following :\n"
+"- reduces the weights so they are well-formed                                                             \n"
+"- calculates the dimension of the space of a-weighted homogeneous polynomials of degree d in n+1 variables\n"
+"- reduces the degree when possible and calculates the dimension again                                     \n", bg='white')
 description_label.pack(pady=10)
 
 weights_label = tk.Label(root, text="Enter the weights (a_0, ..., a_n) separated by spaces:", bg='white')
