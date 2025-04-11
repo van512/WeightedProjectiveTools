@@ -136,6 +136,8 @@ class Weights:
         self.wellformed_weights = np.array((self.reduced_weights / self.Q).astype(int))
         # Compute the LCM of S
         self.q = np.array(np.lcm.reduce(self.S))
+        # lcm of the weights
+       # self.a = np.array(np.lcm.reduce(self.weights))
 
 
 class LinearSystem:
@@ -154,7 +156,10 @@ class LinearSystem:
         self.form_well_degree()
 
         # Computes the dimension on the normalized weights and degree (normalized = reduced + well-formed)
-        self.dimension = dimrec(self.W.wellformed_weights, self.wellformed_degree)
+        if self.wellformed_degree is not None:
+            self.dimension = dimrec(self.W.wellformed_weights, self.wellformed_degree)
+        else :
+            self.dimension = dimrec(self.W.weights, self.degree)
 
     def form_well_degree(self):
         """
@@ -180,6 +185,23 @@ class LinearSystem:
         else:
             self.isreducible = False
 
+    
+    #def is_ample(self):
+    #    if self.wellformed_degree is not None:
+    #       return self.wellformed_degree == np.array(np.lcm.reduce(self.W.wellformed_weights)) and self.wellformed_degree > 0
+    #    else:
+    #        return self.degree == np.array(np.lcm.reduce(self.W.weights)) and self.degree > 0
+
+    #def is_very_ample(self):
+
+#class TwistedSheaf(LinearSystem):
+#    def __init__(self, degree: int, weights: Weights):
+#        super().__init__(weights, degree)
+        
+    #def is_ample(self):
+     #   if self.degree == np.array(np.lcm.reduce(self.W.self.weights))
+    #def is_very_ample(self):
+        # Check if the sheaf is very ample
 
 
 
@@ -200,14 +222,14 @@ def very_ample_bound(weights:NDArray[np.int32]):
             total_lcm_sum += memoized_lcm(weights_sublist)
         return total_lcm_sum
 
-    n = len(weights)-1
-    if n==0:
+    r = len(weights)-1
+    if r==0:
         return -weights[0]
-    elif n>0:
+    elif r>0:
         temp_sum = 0
-        for nu in range(2,n+1+1):
-            temp_sum += sum_lcms(nu)/comb(n-1,nu-2)
-        return -weights.sum() + temp_sum/n
+        for nu in range(2,r+1+1):
+            temp_sum += sum_lcms(nu)/comb(r-1,nu-2)
+        return -weights.sum() + temp_sum/r
 
 
 
@@ -220,6 +242,11 @@ class WeightedProjectiveSpace:
     def embeds_into(self)->int:
         m = np.array(np.lcm.reduce(self.W.wellformed_weights))
         nGm = np.ceil(very_ample_bound(self.W.wellformed_weights)/m)
+        G = very_ample_bound(self.W.wellformed_weights)
+        self.m = m
+        self.G = G
+        self.nGm1 = G/m
+        self.nGm = nGm
         if nGm < 1:
             deg_mn = m  #0 pb chekc >0
         else:
@@ -229,3 +256,32 @@ class WeightedProjectiveSpace:
         N = linsys.dimension-1
         return N
         # return the dimension of the projective space in which it embeds into
+
+
+w09 = Weights([1,4,5,10])
+w10 = Weights([1,2,6,9])
+w11 = Weights([1,2,3,6])
+w12 = Weights([1,3,8,12])
+w13 = Weights([1,6,14,21])
+w14 = Weights([2,3,10,15])
+w15 = Weights([1,6,10,15])
+
+sigmas = [20,18,12,24,42,30,60] # table 3
+gplusone = [22,29,25,25,22,16,444] # table 2
+numbers = ['9','10','11','12','13','14','BelRob']
+
+i =0 
+for w in [w09, w10, w11, w12, w13, w14,w15]:
+    wps=WeightedProjectiveSpace(w)
+    print(" CASE ", numbers[i])
+    print("weights Q = ", wps.W.wellformed_weights)
+    print("m=lcm(Q) = ", wps.m)
+    print("G(Q) = ",wps.G)
+    print("G(Q)/m =",wps.nGm1)
+    print("G(Q)/m < n = ", wps.nGm)
+    print("deg = nm = ", wps.embedding_linear_system.degree)
+    print("dimension N = ", wps.embedding_dimension)
+    print("Bruno's sigma = nm = ", sigmas[i])
+    print("Bruno's N = g+1 = ", gplusone[i])
+    print("-------------------")
+    i+=1
